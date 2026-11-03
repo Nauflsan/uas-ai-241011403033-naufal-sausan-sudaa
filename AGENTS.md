@@ -35,17 +35,21 @@ uas-ai-nim-nama/
 
 - Nama file, kelas, fungsi, dan field JSON **persis** seperti di `PLAN-KODE.md`.
 - Docstring bahasa Indonesia di setiap fungsi dan kelas, isinya: fungsi ini untuk apa, Input, Output, Memanggil (fungsi apa saja yang dipanggil dan untuk apa), Dipanggil (dari mana). Contoh:
-    def cari_intent(pertanyaan, threshold=0.5):
-        """Cari intent yang paling mirip dengan pertanyaan user.
 
-        Input    : teks pertanyaan, threshold kemiripan minimum
-        Output   : (id_intent, skor); 'fallback' kalau skor di bawah threshold
-        Memanggil: normalisasi() untuk merapikan teks, matcher.cari() untuk menghitung kemiripan
-        Dipanggil: GitBot.jawab()
-        """
+  ```python
+  def cari_intent(pertanyaan, threshold=0.5):
+      """Cari intent yang paling mirip dengan pertanyaan user.
+
+      Input    : teks pertanyaan, threshold kemiripan minimum
+      Output   : (id_intent, skor); 'fallback' kalau skor di bawah threshold
+      Memanggil: normalisasi() untuk merapikan teks, matcher.cari() untuk menghitung kemiripan
+      Dipanggil: GitBot.jawab()
+      """
+  ```
+
 - Komentar inline bahasa Indonesia yang sederhana di setiap langkah (blok logis), bukan di setiap baris. Isinya apa yang dilakukan dan kenapa. Di bagian inti AI (`preprocessing.py`, `matcher.py`, `chatbot.py`) komentar lebih rinci, termasuk arti rumus (misalnya cosine similarity) dan alasan memakai threshold.
 - Setiap konstanta di `config.py` diberi komentar: artinya dan kenapa nilainya segitu.
-- Fungsi pendek (di bawah 30 baris), satu tugas. Komentar inline hanya untuk menjelaskan *kenapa*, bukan *apa*.
+- Fungsi pendek (di bawah 30 baris), satu tugas.
 - Penanganan error eksplisit: `try/except` spesifik, pesan error yang jelas untuk pengguna, aplikasi tidak boleh crash.
 - Model dimuat sekali lalu di-cache. Jangan pakai GPU/CUDA.
 - Jangan mengarang isi jawaban Git. Isi knowledge base ditulis user.
@@ -54,10 +58,10 @@ uas-ai-nim-nama/
 
 - Jangan menjalankan `git commit`, `git push`, mengubah remote, atau menghapus file/folder.
 - Jangan menginstall paket di luar venv proyek, dan jangan menjalankan perintah di luar folder proyek.
+- Jangan membaca atau mengubah isi folder `venv/`.
 - Jangan mengubah struktur, nama file/fungsi, atau ID intent. Jangan menambah fitur di luar tahap yang diminta.
 - Jangan mengisi `data/knowledge_base.json` (selain kerangka kosong) dan `data/test_questions.csv`.
 - Jangan memanggil layanan AI/LLM eksternal. Metode AI harus berjalan lokal dan bisa dijelaskan.
-- Jangan membaca atau mengubah isi folder `venv/`.
 
 ## Cara kerja per tahap
 
@@ -65,6 +69,14 @@ uas-ai-nim-nama/
 2. Setelah selesai: jalankan tes yang relevan, ringkas file yang dibuat/diubah dan cara menjalankannya, lalu **berhenti**. Jangan lanjut ke tahap berikutnya.
 3. Kalau instruksi ambigu atau butuh keputusan di luar plan, tanya dulu. Jangan menebak.
 4. Usulkan pesan commit (Conventional Commits) di akhir ringkasan, jangan dijalankan.
+5. Tambahkan satu entri di `CATATAN-TAHAP.md` (root proyek, tidak di-commit). Isi hanya fakta yang kamu lakukan dan ketahui:
+   - Tahap: nomor dan nama
+   - Dibuat/diubah: daftar file
+   - Cara menjalankan dan hasil tes yang sebenarnya (tempel output; jangan menulis "berhasil" kalau tidak dijalankan)
+   - Masalah yang ditemui dan cara mengatasinya
+   - Keputusan yang kamu ambil di luar `PLAN-KODE.md` (kalau tidak ada, tulis "tidak ada")
+   - Baris log AI: alat dan tujuan
+   Jangan menulis alasan, kesimpulan, atau pendapat atas nama user.
 
 ## Perintah (Windows)
 
