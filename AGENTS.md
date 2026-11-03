@@ -34,7 +34,17 @@ uas-ai-nim-nama/
 ## Aturan kode
 
 - Nama file, kelas, fungsi, dan field JSON **persis** seperti di `PLAN-KODE.md`.
-- Setiap fungsi dan kelas wajib punya docstring bahasa Indonesia, 1-3 baris: fungsinya, input, output.
+- Docstring bahasa Indonesia di setiap fungsi dan kelas, isinya: fungsi ini untuk apa, Input, Output, Memanggil (fungsi apa saja yang dipanggil dan untuk apa), Dipanggil (dari mana). Contoh:
+    def cari_intent(pertanyaan, threshold=0.5):
+        """Cari intent yang paling mirip dengan pertanyaan user.
+
+        Input    : teks pertanyaan, threshold kemiripan minimum
+        Output   : (id_intent, skor); 'fallback' kalau skor di bawah threshold
+        Memanggil: normalisasi() untuk merapikan teks, matcher.cari() untuk menghitung kemiripan
+        Dipanggil: GitBot.jawab()
+        """
+- Komentar inline bahasa Indonesia yang sederhana di setiap langkah (blok logis), bukan di setiap baris. Isinya apa yang dilakukan dan kenapa. Di bagian inti AI (`preprocessing.py`, `matcher.py`, `chatbot.py`) komentar lebih rinci, termasuk arti rumus (misalnya cosine similarity) dan alasan memakai threshold.
+- Setiap konstanta di `config.py` diberi komentar: artinya dan kenapa nilainya segitu.
 - Fungsi pendek (di bawah 30 baris), satu tugas. Komentar inline hanya untuk menjelaskan *kenapa*, bukan *apa*.
 - Penanganan error eksplisit: `try/except` spesifik, pesan error yang jelas untuk pengguna, aplikasi tidak boleh crash.
 - Model dimuat sekali lalu di-cache. Jangan pakai GPU/CUDA.
