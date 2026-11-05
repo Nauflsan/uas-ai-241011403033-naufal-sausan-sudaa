@@ -85,7 +85,7 @@
     "git remote -v",
     "git push -u origin main"
   ],
-  "sumber": "GitHub Docs, Adding locally hosted code to GitHub (docs.github.com)"
+  "sumber": "GitHub Docs, Adding locally hosted code to GitHub: https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github"
 },
 {
   "id": "saran_commit",
@@ -130,7 +130,7 @@
     "git branch",
     "git branch nama-branch"
   ],
-  "sumber": "Pro Git, 3.1 Branches in a Nutshell, dan dokumentasi git-switch di git-scm.com (URL belum dicek)"
+  "sumber": "Pro Git, 3.1 Branches in a Nutshell: https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell; dokumentasi git-switch: https://git-scm.com/docs/git-switch"
 },
 {
   "id": "fetch_vs_pull",
@@ -153,7 +153,7 @@
     "git merge origin/main",
     "git pull origin main"
   ],
-  "sumber": "Pro Git, 2.5 Working with Remotes (URL belum dicek)"
+  "sumber": "Pro Git, 2.5 Working with Remotes: https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes"
 },
 {
   "id": "push_ditolak",
@@ -217,7 +217,7 @@
     "git commit -m \"Resolve merge conflict\"",
     "git merge --abort"
   ],
-  "sumber": "Pro Git, 3.2 Basic Branching and Merging (bagian Basic Merge Conflicts) (URL belum dicek)"
+  "sumber": "Pro Git, 3.2 Basic Branching and Merging: https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging"
 },
 {
   "id": "local_changes_overwritten",
@@ -241,7 +241,7 @@
     "git stash pop",
     "git restore nama-file"
   ],
-  "sumber": "Pro Git, 7.3 Stashing and Cleaning (URL belum dicek)"
+  "sumber": "Pro Git, 7.3 Stashing and Cleaning: https://git-scm.com/book/en/v2/Git-Tools-Stashing-and-Cleaning"
 },
 {
   "id": "merge_branch",
@@ -264,7 +264,7 @@
     "git push origin main",
     "git branch -d nama-branch"
   ],
-  "sumber": "Pro Git, 3.2 Basic Branching and Merging (URL belum dicek)"
+  "sumber": "Pro Git, 3.2 Basic Branching and Merging (bagian Basic Merge Conflicts): https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging"
 },
 {
   "id": "alur_tim_aman",
@@ -307,7 +307,7 @@
   "perintah": [
     "git push -u origin nama-fitur"
   ],
-  "sumber": "GitHub Docs, Quickstart for pull requests: https://docs.github.com/en/pull-requests/get-started/pull-request-quickstart; dan Creating a pull request (URL belum dicek)"
+  "sumber": "GitHub Docs, Quickstart for pull requests: https://docs.github.com/en/pull-requests/get-started/pull-request-quickstart; Creating a pull request: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request"
 },
 {
   "id": "batalin_commit",
@@ -330,7 +330,7 @@
     "git revert HEAD",
     "git push"
   ],
-  "sumber": "Pro Git, 2.4 Undoing Things dan 7.7 Reset Demystified (URL belum dicek)"
+  "sumber": "Pro Git, 2.4 Undoing Things: https://git-scm.com/book/en/v2/Git-Basics-Undoing-Things; 7.7 Reset Demystified: https://git-scm.com/book/en/v2/Git-Tools-Reset-Demystified"
 },
 {
   "id": "stash",
@@ -355,7 +355,7 @@
     "git stash -u",
     "git stash push -m \"pesan\""
   ],
-  "sumber": "Pro Git, 7.3 Stashing and Cleaning (URL belum dicek)"
+  "sumber": "Pro Git, 7.3 Stashing and Cleaning: https://git-scm.com/book/en/v2/Git-Tools-Stashing-and-Cleaning"
 },
 {
   "id": "gitignore",
@@ -378,7 +378,7 @@
     "git commit -m \"chore: add gitignore\"",
     "git status"
   ],
-  "sumber": "Pro Git, 2.2 Recording Changes to the Repository (bagian Ignoring Files), dan dokumentasi gitignore di git-scm.com (URL belum dicek)"
+  "sumber": "Pro Git, 2.2 Recording Changes to the Repository (bagian Ignoring Files): https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository; dokumentasi gitignore: https://git-scm.com/docs/gitignore"
 },
 {
   "id": "secret_kepush",
