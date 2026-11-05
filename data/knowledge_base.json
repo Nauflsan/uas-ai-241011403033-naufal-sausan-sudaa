@@ -1,5 +1,115 @@
 {
-  "intents": [],
+  "intents": [{
+  "id": "setup_awal",
+  "nama": "Instal Git dan atur identitas",
+  "contoh": [
+    "Bagaimana cara menginstal Git pada Windows dan memastikan instalasinya berhasil?",
+    "Setelah Git terpasang, bagaimana cara mengatur user.name dan user.email secara global?",
+    "git config --global user.name dan user.email",
+    "Gw baru pasang Git di leptop, langkah pertama buat mengatur identitas commit apa?",
+    "git udh keinstal, tp nama sama email blm diatur. perintahnya apa?",
+    "download git buat windows dari mana terus cek versinya gimana",
+    "First time using Git, what do I need to configure before my first commit?",
+    "cara mengatur user.emal di git lewat terminal gimana?"
+  ],
+  "jawaban": "Download Git for Windows dari git-scm.com/download/win, jalankan installer, lalu cek dengan git --version. Setelah itu atur identitas sekali saja dengan git config --global user.name dan user.email. Nama dan email ini tercatat di setiap commit. Cek hasilnya dengan git config user.name dan git config user.email. Kalau mau identitas lain untuk satu proyek, jalankan perintah yang sama tanpa --global di dalam folder proyek itu.",
+  "perintah": [
+    "git --version",
+    "git config --global user.name \"Nama Kamu\"",
+    "git config --global user.email \"email@contoh.com\"",
+    "git config user.name",
+    "git config user.email"
+  ],
+  "sumber": "Pro Git, 1.5 Installing Git dan 1.6 First-Time Git Setup: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git dan https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup"
+},
+{
+  "id": "login_github",
+  "nama": "Login atau autentikasi GitHub dari terminal",
+  "contoh": [
+    "Mohon berikan panduan autentikasi akun GitHub melalui terminal.",
+    "Bagaimana cara melakukan login ke GitHub melalui Command Prompt setelah Git berhasil diinstal?",
+    "Git sudah terpasang, tapi terminal meminta authentication. How do I sign in ke GitHub?",
+    "Bro, kalau mau masuk akun GitHub dari CMD, caranya gimana?",
+    "login github cmd",
+    "gmn cara login ke gitub lewat terminal",
+    "gh auth login",
+    "laptop baru, akun githab blm tersambung ke terminal. mulai dari mana ya?"
+  ],
+  "jawaban": "Di terminal, GitHub tidak memakai password akun untuk git clone atau git push lewat HTTPS. Cara termudah: Git for Windows sudah membawa Git Credential Manager. Saat clone repo private atau push pertama, jendela browser muncul. Login di situ seperti di web, lalu kredensial tersimpan otomatis. Alternatif: pasang GitHub CLI (gh) dulu karena tidak ikut terpasang bersama Git, lalu jalankan gh auth login, pilih HTTPS, dan jawab Y saat ditanya apakah Git perlu diautentikasi dengan kredensial GitHub. Kalau login tersangkut karena kredensial lama, hapus entri GitHub di Windows Credential Manager lalu coba lagi.",
+  "perintah": [
+    "gh --version",
+    "gh auth login"
+  ],
+  "sumber": "GitHub Docs, Caching your GitHub credentials in Git: https://docs.github.com/en/get-started/git-basics/caching-your-github-credentials-in-git"
+},
+{
+  "id": "clone_repo",
+  "nama": "Clone repository dari GitHub",
+  "contoh": [
+    "Saya memerlukan panduan untuk menyalin repository GitHub ke komputer lokal menggunakan perintah Git Clone.",
+    "git clone <URL_REPOSITORY>",
+    "Bang, ajarin gw cara clone repository dari GitHub ke laptop.",
+    "Gimana cara ngambil project orang dari GitHub pakai git clone?",
+    "Cara clone repositroy dari GitHub ke komputer lokal gimana?",
+    "temen ngasih link repo GitHub, gw mau ambil ke laptop. perintahnya apa?",
+    "How do I clone a GitHub repository to my computer?",
+    "cara clonne repo github ke folder tertentu gimana"
+  ],
+  "jawaban": "Salin URL repo dari tombol Code di GitHub, lalu jalankan git clone dengan URL itu di terminal, di folder tempat kamu mau menyimpan proyek. Git membuat folder baru bernama sama dengan repo dan mengunduh seluruh riwayatnya. Kalau mau nama folder lain, tambahkan nama folder setelah URL. Setelah selesai, masuk ke foldernya dengan cd.",
+  "perintah": [
+    "git clone <URL_REPOSITORY>",
+    "git clone <URL_REPOSITORY> nama-folder",
+    "cd nama-folder"
+  ],
+  "sumber": "Pro Git, 2.1 Getting a Git Repository: https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository"
+},
+{
+  "id": "push_pertama",
+  "nama": "Push pertama project lokal ke GitHub",
+  "contoh": [
+    "Saya memerlukan panduan untuk mengirimkan proyek lokal ke repository GitHub untuk pertama kalinya.",
+    "git remote add origin terus git push -u origin main itu urutannya gimana?",
+    "folder project udh selesai, repo GitHub msh kosong. gmn kirim file pertama kali?",
+    "The project is ready locally, how do I push it ke GitHub for the first time?",
+    "cara push pertema kali project ke github",
+    "Bro, gw baru selesai coding, gimana cara upload project pertama kali ke GitHub?",
+    "Bagaimana cara menghubungkan repository lokal dengan remote origin lalu mengirimnya ke branch main?",
+    "upload folder project ke repo github yg baru dibikin"
+  ],
+  "jawaban": "Buat dulu repo baru di GitHub tanpa README, license, atau .gitignore supaya tidak bentrok. Di folder proyek, jalankan git init, git add ., lalu git commit. Hubungkan ke GitHub dengan git remote add origin diikuti URL repo, cek dengan git remote -v, lalu kirim dengan git push -u origin main. Pastikan kamu sudah terautentikasi ke GitHub sebelum push. Jangan pernah push password, API key, atau data sensitif lain.",
+  "perintah": [
+    "git init -b main",
+    "git add .",
+    "git commit -m \"First commit\"",
+    "git remote add origin <URL_REPOSITORY>",
+    "git remote -v",
+    "git push -u origin main"
+  ],
+  "sumber": "GitHub Docs, Adding locally hosted code to GitHub (docs.github.com)"
+},
+{
+  "id": "saran_commit",
+  "nama": "Saran penulisan pesan commit",
+  "contoh": [
+    "Saya memerlukan rekomendasi format penulisan pesan commit yang baik dan sesuai dengan standar konvensi.",
+    "contoh commit message untuk fix bug",
+    "Bang, kasih contoh commit message yang bagus buat nambah fitur login dong.",
+    "Biasanya developer nulis pesan comit pakai format apa sih?",
+    "feat, fix, docs di commit message itu artinya apa?",
+    "gmn nulis commit massage yg rapi biar gampang dibaca tim",
+    "udh ubah warna tombol sama ukuran font, enaknya commit message ditulis apa?",
+    "I updated the UI, what should I write in the commit message?"
+  ],
+  "jawaban": "Tulis pesan commit dengan kalimat perintah (imperatif), misalnya Fix bug dan bukan Fixed bug. Ringkasan sebaiknya singkat, sekitar 50 karakter atau kurang, dengan huruf kapital di awal. Kalau perlu penjelasan, beri satu baris kosong lalu tulis isinya. Satu commit sebaiknya satu perubahan yang terpisah. Format populer: Conventional Commits, yaitu tipe, titik dua, spasi, lalu deskripsi. feat untuk fitur baru, fix untuk perbaikan bug, docs untuk perubahan dokumentasi saja. Untuk perubahan tampilan, tulis apa yang berubah, misalnya Update button color and font size.",
+  "perintah": [
+    "git commit -m \"feat: add login feature\"",
+    "git commit -m \"fix: resolve form validation bug\"",
+    "git commit -m \"docs: update README installation steps\"",
+    "git commit -m \"Update button color and font size\""
+  ],
+  "sumber": "Pro Git, 5.2 Contributing to a Project (Commit Guidelines): https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project; Conventional Commits 1.0.0: https://www.conventionalcommits.org/en/v1.0.0/"
+}
+],
   "fallback": {
     "jawaban": "Maaf, saya belum memahami pertanyaan Anda seputar Git dan GitHub. Silakan ajukan pertanyaan lain atau periksa kembali kata kunci yang Anda gunakan."
   }
