@@ -62,6 +62,7 @@ uas-ai-nim-nama/
 - Jangan mengubah struktur, nama file/fungsi, atau ID intent. Jangan menambah fitur di luar tahap yang diminta.
 - Jangan mengisi `data/knowledge_base.json` (selain kerangka kosong) dan `data/test_questions.csv`.
 - Jangan memanggil layanan AI/LLM eksternal. Metode AI harus berjalan lokal dan bisa dijelaskan.
+- Untuk melihat struktur proyek pakai `git ls-files` atau `Get-ChildItem src,data,tests,docs,hasil      -Recurse`. Jangan jalankan `Get-ChildItem -Recurse` dari root proyek.
 
 ## Cara kerja per tahap
 

@@ -1,0 +1,7 @@
+sentence-transformers
+scikit-learn
+PySastrawi
+streamlit
+pandas
+matplotlib
+pytest
