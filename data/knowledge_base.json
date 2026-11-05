@@ -108,6 +108,206 @@
     "git commit -m \"Update button color and font size\""
   ],
   "sumber": "Pro Git, 5.2 Contributing to a Project (Commit Guidelines): https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project; Conventional Commits 1.0.0: https://www.conventionalcommits.org/en/v1.0.0/"
+},
+{
+  "id": "bikin_pindah_branch",
+  "nama": "Membuat, melihat, dan pindah branch",
+  "contoh": [
+    "Bagaimana cara membuat branch baru dan langsung berpindah ke branch tersebut?",
+    "Perintah Git apa yang digunakan untuk berpindah dari branch main ke branch lain?",
+    "git branch untuk melihat daftar branch lokal",
+    "Gw mau bikin branch khusus buat fitur login, command-nya apa?",
+    "daftar branch lokal sama branch yang sedang aktif dilihat dari mana?",
+    "git switch -c nama-branch",
+    "I already created a branch, how do I switch back to main?",
+    "gmn cara bikin brach baru buat fitur lain, trus pindah kesana"
+  ],
+  "jawaban": "Buat branch baru sekaligus pindah ke sana dengan git switch -c nama-branch. Untuk pindah ke branch yang sudah ada, pakai git switch nama-branch, misalnya git switch main. Lihat daftar branch lokal dengan git branch; branch yang sedang aktif ditandai bintang. Perhatikan: git branch nama-branch saja hanya membuat branch tanpa berpindah, jadi kamu tetap di branch lama. git switch tersedia sejak Git 2.23; di Git lama pakai git checkout -b nama-branch.",
+  "perintah": [
+    "git switch -c nama-branch",
+    "git switch nama-branch",
+    "git switch main",
+    "git branch",
+    "git branch nama-branch"
+  ],
+  "sumber": "Pro Git, 3.1 Branches in a Nutshell, dan dokumentasi git-switch di git-scm.com (URL belum dicek)"
+},
+{
+  "id": "fetch_vs_pull",
+  "nama": "Perbedaan git fetch dan git pull",
+  "contoh": [
+    "Apa perbedaan fungsi git fetch dan git pull dalam mengambil perubahan dari remote repository?",
+    "Apakah git fetch langsung menggabungkan perubahan dari repository remote ke branch lokal?",
+    "git fetch origin vs git pull origin main",
+    "Kalau cuma mau cek update dari GitHub tanpa mengubah file lokal, pakai perintah apa?",
+    "fetch sama pull bedanya apa ya? dua-duanya ngambil perubahan dari remote kan?",
+    "Teman sudah push perubahan ke GitHub. Gw mau lihat dulu perubahannya sebelum masuk ke branch lokal.",
+    "Does git fetch update my local files or only remote-tracking branches?",
+    "kapan sebaiknya pakai git fecth dan kapan harus git pull?"
+  ],
+  "jawaban": "git fetch hanya mengunduh perubahan terbaru dari remote ke branch remote-tracking seperti origin/main. File dan branch lokal kamu tidak berubah. git pull sama dengan git fetch lalu langsung menggabungkan ke branch yang sedang aktif, jadi file lokal ikut berubah. Pakai fetch kalau mau melihat dulu apa yang berubah, misalnya dengan git log HEAD..origin/main --oneline, lalu gabungkan sendiri dengan git merge origin/main. Pakai pull kalau sudah yakin mau mengambil dan menggabungkan sekaligus.",
+  "perintah": [
+    "git fetch origin",
+    "git log HEAD..origin/main --oneline",
+    "git diff HEAD origin/main",
+    "git merge origin/main",
+    "git pull origin main"
+  ],
+  "sumber": "Pro Git, 2.5 Working with Remotes (URL belum dicek)"
+},
+{
+  "id": "push_ditolak",
+  "nama": "Push ditolak (rejected)",
+  "contoh": [
+    "Apa penyebab perintah git push ditolak dengan pesan ! [rejected] main -> main (fetch first)?",
+    "Saat mengirim commit ke GitHub, muncul pesan ! [rejected] main -> main (non-fast-forward). Bagaimana cara mengatasinya?",
+    "Push ditolak karena repository remote memiliki commit yang belum ada di lokal. Apa langkah yang benar?",
+    "! [rejected] main -> main (fetch first)",
+    "Gw udah commit perubahan, tp pas push malah rejeced. Harus ngapain?",
+    "Repository GitHub sudah berisi README, sedangkan project lokal juga sudah punya commit. Kenapa push-nya ditolak (rejected)?",
+    "remote punya perubahan baru, tapi gw tetap mau kirim commit lokal. cara sinkronnya gimana?",
+    "Why was my git push rejected even though my local commit was successful?"
+  ],
+  "jawaban": "Penyebab: remote (GitHub) punya commit yang belum ada di lokalmu, misalnya teman sudah push atau repo baru sudah berisi README. Git menolak push supaya riwayat di remote tidak hilang. Pesannya berakhir dengan (fetch first) atau (non-fast-forward). Perbaikan: ambil dan gabungkan dulu perubahan remote dengan git pull origin main (atau git fetch origin lalu git merge origin/main), lalu push lagi. Kalau muncul konflik atau pesan divergent branches, selesaikan dulu. Hindari git push --force kecuali kamu yakin, karena itu menimpa commit orang lain di remote.",
+  "perintah": [
+    "git pull origin main",
+    "git push origin main"
+  ],
+  "sumber": "GitHub Docs, Dealing with non-fast-forward errors: https://docs.github.com/en/get-started/using-git/dealing-with-non-fast-forward-errors"
+},
+{
+  "id": "divergent_branches",
+  "nama": "Pesan divergent branches saat pull",
+  "contoh": [
+    "Bagaimana cara mengatasi kondisi ketika branch lokal dan remote memiliki riwayat commit yang berbeda?",
+    "Apa maksud pesan fatal: Need to specify how to reconcile divergent branches. saat menjalankan git pull?",
+    "hint: You have divergent branches and need to specify how to reconcile them.",
+    "Git pull meminta pilihan antara merge dan rebase. Apa perbedaan keduanya untuk menyatukan riwayat branch?",
+    "hint: git config pull.rebase false # merge",
+    "Gw udah punya beberapa commit lokal, sementara teman juga udah push commit ke main. Pas pull malah muncul pesan divergent branches.",
+    "Why does Git say that my branches have diverged when I run git pull?",
+    "gimana cara nentuin pull strategy biar git ga terus minta konfigurasi merge atau rebse?"
+  ],
+  "jawaban": "Penyebab: branch lokal dan remote sama-sama punya commit baru yang tidak dimiliki satu sama lain, dan Git belum tahu mau menggabungkannya dengan merge atau rebase. Pada versi Git yang baru, git pull berhenti dan meminta kamu memilih. Sekali jalan, pilih salah satu: git pull --no-rebase (gabung dengan merge, membuat merge commit), git pull --rebase (pasang commit lokalmu di atas commit remote, riwayat lebih lurus), atau git pull --ff-only (hanya mau kalau bisa fast-forward, kalau bercabang gagal). Supaya tidak ditanya lagi, set default dengan git config pull.rebase false (merge), pull.rebase true (rebase), atau pull.ff only. Tambahkan --global agar berlaku untuk semua repo. Kalau setelah itu muncul konflik, lihat penjelasan merge conflict.",
+  "perintah": [
+    "git pull --no-rebase",
+    "git pull --rebase",
+    "git pull --ff-only",
+    "git config pull.rebase false"
+  ],
+  "sumber": "Dokumentasi git-pull dan opsi pull.rebase / pull.ff di git-config: https://git-scm.com/docs/git-pull"
+},
+{
+  "id": "merge_conflict",
+  "nama": "Menyelesaikan merge conflict",
+  "contoh": [
+    "Saya mendapatkan pesan CONFLICT (content): Merge conflict in README.md ketika menggabungkan perubahan. Bagaimana cara menyelesaikannya?",
+    "Apa langkah yang harus dilakukan setelah Git menampilkan pesan Automatic merge failed; fix conflicts and then commit the result.?",
+    "Dua branch mengubah bagian kode yang sama sehingga terjadi konflik. Bagaimana cara menentukan perubahan yang harus dipertahankan?",
+    "<<<<<<< HEAD dan >>>>>>> main muncul di dalam file setelah merge. Itu harus diapakan?",
+    "Gw merge branch tapi beberapa file jadi confilct, cara beresinnya gimana?",
+    "error: Pulling is not possible because you have unmerged files.",
+    "How do I resolve a merge conflict without losing the changes from either branch?",
+    "abis merge ada tanda ======= di file, itu maksudnya apa dan cara hapusnya gimana?"
+  ],
+  "jawaban": "Penyebab: dua sisi mengubah bagian file yang sama, jadi Git tidak bisa memilih sendiri. Langkah: 1) jalankan git status untuk melihat file yang bermasalah. 2) Buka file itu dan cari penanda <<<<<<<, =======, dan >>>>>>>. Bagian di antara <<<<<<< HEAD dan ======= adalah versimu, bagian di antara ======= dan >>>>>>> adalah versi yang digabung. 3) Edit jadi hasil akhir yang kamu mau, lalu hapus ketiga penanda itu. 4) git add file tersebut lalu git commit untuk menyelesaikan merge. Kalau mau batal dan kembali seperti sebelum merge, jalankan git merge --abort. Pesan Pulling is not possible because you have unmerged files artinya konflik sebelumnya belum diselesaikan, jadi selesaikan atau batalkan dulu sebelum pull lagi.",
+  "perintah": [
+    "git status",
+    "git add README.md",
+    "git commit -m \"Resolve merge conflict\"",
+    "git merge --abort"
+  ],
+  "sumber": "Pro Git, 3.2 Basic Branching and Merging (bagian Basic Merge Conflicts) (URL belum dicek)"
+},
+{
+  "id": "local_changes_overwritten",
+  "nama": "Perubahan lokal akan tertimpa",
+  "contoh": [
+    "Mengapa Git menolak proses pull ketika terdapat perubahan pada file lokal yang belum di-commit?",
+    "Bagaimana cara mengatasi pesan error: Your local changes to the following files would be overwritten by merge:?",
+    "error: Your local changes to the following files would be overwritten by checkout:",
+    "Please commit your changes or stash them before you merge.",
+    "README udh gw edit, tp pas pull malah ditlak karena perubahan lokal belum di-commit.",
+    "Bang, mau checkout ke branch lain tapi perubahan coding gw belum di-commit. Biar aman gimana?",
+    "Why can't I switch branches while I have uncommitted changes in my working tree?",
+    "git pull gagal gara-gara ada file lokal yg belum di-commit, harus di-commit dulu atau diapain?"
+  ],
+  "jawaban": "Penyebab: kamu punya perubahan yang belum di-commit di file yang sama dengan yang mau diubah oleh pull, merge, atau pindah branch. Git menolak supaya perubahanmu tidak hilang. Pilih salah satu: 1) Commit dulu dengan git add . lalu git commit, setelah itu pull atau pindah branch lagi. 2) Simpan sementara dengan git stash, jalankan pull atau pindah branch, lalu kembalikan dengan git stash pop. 3) Kalau perubahannya memang tidak dipakai, buang dengan git restore nama-file; perubahan di file itu hilang permanen, jadi pastikan dulu.",
+  "perintah": [
+    "git status",
+    "git add .",
+    "git commit -m \"pesan\"",
+    "git stash",
+    "git stash pop",
+    "git restore nama-file"
+  ],
+  "sumber": "Pro Git, 7.3 Stashing and Cleaning (URL belum dicek)"
+},
+{
+  "id": "merge_branch",
+  "nama": "Menggabungkan branch",
+  "contoh": [
+    "Bagaimana cara menggabungkan perubahan dari satu branch ke branch main menggunakan Git?",
+    "Perintah apa yang digunakan untuk melakukan merge branch secara lokal?",
+    "git merge nama-branch",
+    "Gw udah selesai bikin fitur di branch development, sekarang mau gabungin ke main. Gimana caranya?",
+    "cara masukin hasil coding dari branch lain ke branch utama gimana?",
+    "udah beres ngerjain di branch fitur, mau mergge ke main tp harus pindah dulu ga?",
+    "I have finished working on my feature branch. How can I merge it into main?",
+    "fitur udah selesai di branch sendiri, pengen gabung ke main lewat terminal"
+  ],
+  "jawaban": "Pindah dulu ke branch tujuan (biasanya main) dengan git switch main, lalu gabungkan branch lain ke situ dengan git merge nama-branch. Merge selalu menggabungkan ke branch yang sedang aktif, jadi pastikan kamu berada di branch tujuan. Kalau kerja bareng orang lain, jalankan git pull origin main dulu supaya main terbaru. Kalau main tidak punya commit baru, Git cukup memajukan pointer (fast-forward); kalau ada, Git membuat merge commit. Kalau muncul CONFLICT, selesaikan dulu (lihat merge conflict). Setelah itu push dengan git push origin main. Branch fitur yang sudah selesai boleh dihapus dengan git branch -d nama-branch.",
+  "perintah": [
+    "git switch main",
+    "git pull origin main",
+    "git merge nama-branch",
+    "git push origin main",
+    "git branch -d nama-branch"
+  ],
+  "sumber": "Pro Git, 3.2 Basic Branching and Merging (URL belum dicek)"
+},
+{
+  "id": "alur_tim_aman",
+  "nama": "Alur kerja tim yang aman",
+  "contoh": [
+    "Bagaimana prosedur kerja menggunakan Git yang tepat agar kolaborasi dalam tim tidak menyebabkan konflik?",
+    "Apa urutan aktivitas Git yang disarankan sebelum mulai mengerjakan tugas bersama anggota tim?",
+    "workflow git untuk kerja tim",
+    "Sebelum mulai coding, apakah setiap anggota tim harus melakukan pull dari branch utama terlebih dahulu?",
+    "biasanya alur kerja kalau satu project dikerjain beberapa orang gimana biar perubahan nggak saling ketimpa?",
+    "Gw sama teman mau ngerjain fitur masing-masing. Gimana pembagian branch dan urutan push yang aman?",
+    "What is the recommended Git workflow for a team working on the same project?",
+    "gmn biar gw sama temen ga saling timpa file pas push ke main? ada aturan mainny?"
+  ],
+  "jawaban": "Alur yang umum dan aman: 1) Jangan kerja langsung di main. Update dulu dengan git switch main lalu git pull origin main. 2) Buat branch sendiri untuk tiap fitur atau tugas: git switch -c nama-fitur. 3) Kerja dan commit dengan pesan yang jelas. 4) Sebelum push, ambil update terbaru dari main supaya konflik ketahuan lebih awal: git fetch origin lalu git merge origin/main. 5) Push branch kamu: git push -u origin nama-fitur. 6) Buka Pull Request di GitHub supaya dicek teman, lalu merge ke main setelah disetujui. 7) Setelah merge, hapus branch fitur, pindah ke main, dan pull lagi sebelum mulai tugas berikutnya. Membagi file atau bagian kode yang jelas antar anggota juga mengurangi konflik.",
+  "perintah": [
+    "git switch main",
+    "git pull origin main",
+    "git switch -c nama-fitur",
+    "git fetch origin",
+    "git merge origin/main",
+    "git push -u origin nama-fitur"
+  ],
+  "sumber": "GitHub Docs, GitHub flow: https://docs.github.com/en/get-started/using-github/github-flow"
+},
+{
+  "id": "pull_request",
+  "nama": "Membuat dan merge pull request",
+  "contoh": [
+    "Bagaimana prosedur membuat Pull Request dari branch fitur ke branch utama melalui GitHub?",
+    "Apa tahapan yang harus dilakukan untuk mengajukan perubahan kode agar dapat ditinjau oleh anggota tim?",
+    "cara bikin pull request di github",
+    "Branch fitur sudah di-push ke GitHub. Bagaimana cara mengajukan perubahan agar bisa diperiksa sebelum digabungkan?",
+    "habis push branch, tombol Compare & pull request di github itu buat apa dan gimana lanjutnya?",
+    "Apa perbedaan proses membuat Pull Request, melakukan review, dan melakukan merge di GitHub?",
+    "How do I create a pull request and merge it after approval?",
+    "temen gw udah selesai coding di branch sendiri, cara masukin hasilnya lewat pul request gimana?"
+  ],
+  "jawaban": "Push dulu branch fitur ke GitHub dengan git push -u origin nama-fitur. Lalu buka repo di GitHub. Klik Compare & pull request di banner kuning, atau buka tab Pull requests lalu New pull request. Pilih base branch (tujuan, biasanya main) dan compare branch (branch fitur), isi judul dan deskripsi, lalu klik Create pull request. Teman satu tim bisa mengecek dan memberi komentar (review). Kalau sudah disetujui dan tidak ada konflik, klik Merge pull request lalu Confirm merge. Setelah itu branch fitur boleh dihapus lewat tombol Delete branch.",
+  "perintah": [
+    "git push -u origin nama-fitur"
+  ],
+  "sumber": "GitHub Docs, Quickstart for pull requests: https://docs.github.com/en/pull-requests/get-started/pull-request-quickstart; dan Creating a pull request (URL belum dicek)"
 }
 ],
   "fallback": {
