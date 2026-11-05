@@ -1,0 +1,6 @@
+{
+  "intents": [],
+  "fallback": {
+    "jawaban": "Maaf, saya belum memahami pertanyaan Anda seputar Git dan GitHub. Silakan ajukan pertanyaan lain atau periksa kembali kata kunci yang Anda gunakan."
+  }
+}
