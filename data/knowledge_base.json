@@ -308,6 +308,97 @@
     "git push -u origin nama-fitur"
   ],
   "sumber": "GitHub Docs, Quickstart for pull requests: https://docs.github.com/en/pull-requests/get-started/pull-request-quickstart; dan Creating a pull request (URL belum dicek)"
+},
+{
+  "id": "batalin_commit",
+  "nama": "Membatalkan commit",
+  "contoh": [
+    "Bagaimana cara membatalkan commit terakhir yang belum di-push tanpa menghapus perubahan pada file?",
+    "Commit sudah terlanjur dikirim ke GitHub. Apa perbedaan penggunaan git reset dan git revert untuk membatalkannya?",
+    "git reset --soft HEAD~1 vs git revert HEAD",
+    "Gw salah commit dan belum push, cara batalin commt-nya tapi perubahan coding tetap ada gimana?",
+    "udh terlanjur push commit yg salah, cara balikin perubahan tanpa menghapus riwayat commit?",
+    "How to undo the last local commit while keeping my changes?",
+    "git revert HEAD",
+    "salah commit ke main dan udh ke-push, harus pakai reset atau revert?"
+  ],
+  "jawaban": "Caranya tergantung commit sudah di-push atau belum. Belum di-push: git reset --soft HEAD~1 membatalkan commit terakhir, perubahan file tetap ada dan tetap ter-stage. Pakai git reset HEAD~1 kalau perubahan mau tetap ada tapi tidak ter-stage. Hindari git reset --hard HEAD~1 karena itu menghapus perubahan di file juga. Sudah di-push: pakai git revert HEAD. Perintah ini membuat commit baru yang membalik commit terakhir tanpa menghapus riwayat (Git membuka editor untuk pesan commit, simpan lalu tutup), lalu git push. Jangan reset lalu force push di branch yang dipakai bersama, karena menimpa riwayat orang lain.",
+  "perintah": [
+    "git log --oneline",
+    "git reset --soft HEAD~1",
+    "git reset HEAD~1",
+    "git revert HEAD",
+    "git push"
+  ],
+  "sumber": "Pro Git, 2.4 Undoing Things dan 7.7 Reset Demystified (URL belum dicek)"
+},
+{
+  "id": "stash",
+  "nama": "Menyimpan perubahan sementara dengan stash",
+  "contoh": [
+    "Bagaimana cara menyimpan perubahan sementara tanpa membuat commit agar dapat melanjutkan pekerjaan di lain waktu?",
+    "Apa perintah Git untuk melihat daftar perubahan yang sebelumnya disimpan menggunakan stash?",
+    "git stash, git stash list, git stash pop",
+    "Lagi ngerjain fitur tapi tiba-tiba ada bug urgent di main. Kerjaan yang belum kelar disimpen ke mana dulu ya?",
+    "kalau mau balikin perubahan dari stash tertentu tanpa menghapus data stash-nya gimana?",
+    "gw punya file baru yg belum di-track, bisa ikut disimpan pake git stach nggak?",
+    "How can I restore changes from a specific stash entry?",
+    "perubahan coding tadi udh gw simpan sementara, sekarang mau dilanjutin lagi. caranya?"
+  ],
+  "jawaban": "git stash menyimpan perubahan yang belum di-commit ke tempat penyimpanan sementara dan mengembalikan folder ke kondisi bersih, jadi kamu bisa pindah branch atau pull. Lihat daftarnya dengan git stash list. Kembalikan stash terbaru dan hapus dari daftar dengan git stash pop. Kalau mau mengembalikan tanpa menghapus stash, pakai git stash apply; untuk stash tertentu sebut namanya, misalnya git stash apply \"stash@{1}\" (tanda kutip diperlukan di PowerShell). File baru yang belum di-track tidak ikut disimpan kecuali pakai git stash -u. Beri nama dengan git stash push -m \"pesan\".",
+  "perintah": [
+    "git stash",
+    "git stash list",
+    "git stash pop",
+    "git stash apply",
+    "git stash apply \"stash@{1}\"",
+    "git stash -u",
+    "git stash push -m \"pesan\""
+  ],
+  "sumber": "Pro Git, 7.3 Stashing and Cleaning (URL belum dicek)"
+},
+{
+  "id": "gitignore",
+  "nama": "Mengabaikan file dengan .gitignore",
+  "contoh": [
+    "Bagaimana cara mengatur file .gitignore agar folder node_modules, venv, dan file .env tidak ikut masuk ke repository?",
+    "Saya sudah menambahkan sebuah file ke .gitignore, tetapi Git masih mendeteksi file tersebut. Apa penyebabnya?",
+    ".gitignore untuk .env, node_modules/, dan venv/",
+    "file .env udh keburu ke-track Git, gimana cara berhenti tracking tanpa menghapus file aslinya?",
+    "Cara mengecualikan folder build dan file konfigurasi lokal dari repository Git gimana?",
+    "gitignor node_modules sama file env",
+    "I added a file to .gitignore, but Git is still tracking it. How do I untrack it?",
+    "folder venv sama file .env mau gw kecualikan dari Git, format penulisannya gimana?"
+  ],
+  "jawaban": "Buat file bernama .gitignore di root repo, isi satu pola per baris, misalnya venv/, node_modules/, dan .env. Garis miring di akhir berarti folder. Commit file .gitignore itu supaya berlaku juga untuk anggota tim. .gitignore hanya berlaku untuk file yang belum di-track. Kalau file sudah terlanjur di-track, hentikan tracking tanpa menghapus file aslinya dengan git rm --cached .env (untuk folder: git rm -r --cached venv), lalu commit. Cek hasilnya dengan git status. Kalau file yang terlanjur di-track berisi password atau kunci dan sudah di-push ke GitHub, itu perlu penanganan lain (lihat pertanyaan tentang secret yang terlanjur di-push).",
+  "perintah": [
+    "git rm --cached .env",
+    "git rm -r --cached venv",
+    "git add .gitignore",
+    "git commit -m \"chore: add gitignore\"",
+    "git status"
+  ],
+  "sumber": "Pro Git, 2.2 Recording Changes to the Repository (bagian Ignoring Files), dan dokumentasi gitignore di git-scm.com (URL belum dicek)"
+},
+{
+  "id": "secret_kepush",
+  "nama": "Password atau API key terlanjur di-push",
+  "contoh": [
+    "Apa yang harus dilakukan jika API key tidak sengaja terunggah ke repository GitHub publik?",
+    "Password database sudah terlanjur masuk ke commit dan di-push. Apakah cukup dengan menghapus file tersebut dari repository?",
+    "API_KEY terlanjur masuk commit dan sudah di-push, langkah pertama untuk mengamankannya apa?",
+    "Gw tanpa sengaja push file .env yang berisi password ke GitHub. Bagaimana cara mengatasinya?",
+    "GitHub menampilkan peringatan secret scanning karena token terdeteksi dalam repository. Apa tindakan yang harus dilakukan?",
+    "I accidentally pushed an access token to GitHub. How can I secure it?",
+    "bang, credentail database udh masuk riwayat commit dan ke github. harus diapain dulu?",
+    "file config berisi password udh ke-upload, kalau dihapus dari repo apa passwordnya otomatis aman?"
+  ],
+  "jawaban": "Anggap rahasia itu sudah bocor. Langkah pertama dan terpenting: cabut atau ganti (revoke atau rotate) password, API key, atau token itu di layanan asalnya. Setelah dicabut, kunci lama tidak bisa dipakai lagi. Menghapus file dari commit terbaru saja tidak cukup, karena rahasia itu masih ada di riwayat commit dan di clone atau fork orang lain. Kalau riwayat mau dibersihkan, GitHub merekomendasikan git-filter-repo lalu force push; ini mengubah hash commit, butuh koordinasi tim, dan cache di GitHub baru bersih setelah menghubungi GitHub Support. Menurut dokumentasi GitHub, kalau kunci sudah dicabut, menulis ulang riwayat mungkin tidak perlu. Cegah ulang: masukkan file rahasia ke .gitignore dan simpan kunci di environment variable.",
+  "perintah": [
+    "git rm --cached .env",
+    "git-filter-repo --sensitive-data-removal --invert-paths --path PATH-FILE-RAHASIA"
+  ],
+  "sumber": "GitHub Docs, Removing sensitive data from a repository: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository"
 }
 ],
   "fallback": {
