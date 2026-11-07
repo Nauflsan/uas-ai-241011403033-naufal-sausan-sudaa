@@ -217,7 +217,7 @@
     "git commit -m \"Resolve merge conflict\"",
     "git merge --abort"
   ],
-  "sumber": "Pro Git, 3.2 Basic Branching and Merging: https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging"
+  "sumber": "Pro Git, 3.2 Basic Branching and Merging (bagian Basic Merge Conflicts): https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging"
 },
 {
   "id": "local_changes_overwritten",
@@ -264,7 +264,7 @@
     "git push origin main",
     "git branch -d nama-branch"
   ],
-  "sumber": "Pro Git, 3.2 Basic Branching and Merging (bagian Basic Merge Conflicts): https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging"
+  "sumber": "Pro Git, 3.2 Basic Branching and Merging: https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging"
 },
 {
   "id": "alur_tim_aman",
