@@ -1,16 +1,21 @@
 """Modul pencocokan intent untuk GitBot.
 
 Modul ini menyediakan kelas pencocokan intent berbasis kemiripan kosine:
-BaseMatcher sebagai kelas dasar abstrak, dan TfidfMatcher sebagai implementasi
-baseline menggunakan representasi TF-IDF dan cosine similarity.
-Metode EmbeddingMatcher dan IndoBertMatcher akan diimplementasikan pada Tahap 6 dan 7.
+BaseMatcher sebagai kelas dasar abstrak, TfidfMatcher sebagai implementasi
+baseline menggunakan representasi TF-IDF dan cosine similarity, serta
+EmbeddingMatcher berbasis representasi sentence embedding multibahasa.
+Metode pembanding IndoBertMatcher akan diimplementasikan pada Tahap 7.
 """
 
-from typing import Union
+from typing import Optional, Union
 import numpy as np
+from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from src.preprocessing import normalisasi
+
+# Cache objek model SentenceTransformer tingkat modul per nama_model
+_CACHE_MODEL_EMBEDDING: dict[str, SentenceTransformer] = {}
 
 
 def _validasi_elemen_contoh(contoh: list) -> None:
@@ -41,7 +46,7 @@ class BaseMatcher:
     Input    : None
     Output   : instansi BaseMatcher
     Memanggil: None
-    Dipanggil: TfidfMatcher (sebagai kelas induk)
+    Dipanggil: TfidfMatcher (sebagai kelas induk), EmbeddingMatcher (sebagai kelas induk)
     """
 
     def __init__(self) -> None:
@@ -50,7 +55,7 @@ class BaseMatcher:
         Input    : None
         Output   : None
         Memanggil: None
-        Dipanggil: TfidfMatcher.__init__()
+        Dipanggil: TfidfMatcher.__init__(), EmbeddingMatcher.__init__()
         """
         self._terlatih: bool = False
         self._daftar_intent_unik: list[str] = []
@@ -62,7 +67,7 @@ class BaseMatcher:
         Input    : contoh (list[tuple[str, str]]) daftar pasangan (intent_id, kalimat)
         Output   : None
         Memanggil: _validasi_elemen_contoh() untuk memvalidasi format data masukan
-        Dipanggil: TfidfMatcher.fit()
+        Dipanggil: TfidfMatcher.fit(), EmbeddingMatcher.fit()
         """
         # Validasi struktur parameter contoh
         if not isinstance(contoh, list):
@@ -87,7 +92,7 @@ class BaseMatcher:
         Input    : teks (str) teks pertanyaan, top_k (int) kuota hasil kemiripan
         Output   : None jika valid; melempar RuntimeError, TypeError, atau ValueError
         Memanggil: isinstance() untuk pengecekan tipe data
-        Dipanggil: BaseMatcher.cari(), TfidfMatcher.cari()
+        Dipanggil: BaseMatcher.cari(), TfidfMatcher.cari(), EmbeddingMatcher.cari()
         """
         if not self._terlatih:
             raise RuntimeError(
@@ -104,7 +109,7 @@ class BaseMatcher:
         Input    : kemiripan (np.ndarray) array 1D nilai kemiripan kosine untuk tiap contoh
         Output   : list[tuple[str, float]] pasangan (intent_id, skor) urut menurun
         Memanggil: float(), sorted()
-        Dipanggil: TfidfMatcher.cari()
+        Dipanggil: TfidfMatcher.cari(), EmbeddingMatcher.cari()
         """
         # Inisialisasi skor tiap intent unik dengan nilai 0.0 sesuai urutan kemunculan pertama
         skor_per_intent = {intent_id: 0.0 for intent_id in self._daftar_intent_unik}
@@ -220,28 +225,206 @@ class TfidfMatcher(BaseMatcher):
         return daftar_skor[:top_k]
 
 
+class EmbeddingMatcher(BaseMatcher):
+    """Pencocok intent berbasis sentence embedding dan kemiripan kosine semantik.
+
+    Memanfaatkan model SentenceTransformer untuk merepresentasikan teks ke dalam
+    vektor padat (dense embedding), berjalan pada CPU tanpa CUDA, serta
+    menerapkan cache model tingkat modul agar model tidak dimuat ulang.
+
+    Input    : nama_model (str) nama atau identifier model SentenceTransformer
+    Output   : instansi EmbeddingMatcher
+    Memanggil: super().__init__(), self._muat_model()
+    Dipanggil: belum ada (direncanakan dari chatbot.py pada Tahap 8, app.py pada Tahap 9, dan evaluate.py pada Tahap 10 sesuai PLAN-KODE.md)
+    """
+
+    def __init__(self, nama_model: str) -> None:
+        """Menginisialisasi matcher embedding dan memuat model pada perangkat CPU.
+
+        Input    : nama_model (str) identifier model pretrained SentenceTransformer
+        Output   : None
+        Memanggil: super().__init__(), self._muat_model()
+        Dipanggil: belum ada (direncanakan dari chatbot.py pada Tahap 8, app.py pada Tahap 9, dan evaluate.py pada Tahap 10 sesuai PLAN-KODE.md)
+        """
+        super().__init__()
+        # Validasi parameter nama_model wajib string dan tidak kosong
+        if not isinstance(nama_model, str) or not nama_model.strip():
+            raise TypeError("Parameter 'nama_model' harus berupa string nama model yang valid.")
+
+        self.nama_model: str = nama_model
+        # Memuat model sekali pada perangkat CPU (tanpa GPU/CUDA) dengan cache modul
+        self.model: SentenceTransformer = self._muat_model(nama_model)
+        self._matriks_embedding: Optional[np.ndarray] = None
+        # Dimensi vektor diambil langsung dari atribut model tanpa hardcode
+        dim_method = getattr(self.model, "get_embedding_dimension", None)
+        if dim_method is None:
+            dim_method = getattr(self.model, "get_sentence_embedding_dimension")
+        self.dimensi: int = int(dim_method())
+
+    def _muat_model(self, nama_model: str) -> SentenceTransformer:
+        """Memuat model SentenceTransformer pada perangkat CPU dengan cache tingkat modul.
+
+        Input    : nama_model (str) identifier model pretrained
+        Output   : instansi SentenceTransformer siap pakai
+        Memanggil: SentenceTransformer()
+        Dipanggil: __init__()
+        """
+        # Kembalikan model dari cache tingkat modul jika sudah pernah dimuat
+        if nama_model in _CACHE_MODEL_EMBEDDING:
+            return _CACHE_MODEL_EMBEDDING[nama_model]
+
+        try:
+            model = SentenceTransformer(nama_model, device="cpu")
+            _CACHE_MODEL_EMBEDDING[nama_model] = model
+            return model
+        except OSError as err:
+            # Dasar OSError (hasil probe penulis pada library terpasang):
+            # (a) Nama model tidak ada, online: RepositoryNotFoundError (turunan OSError);
+            # (b) Offline tanpa cache (HF_HUB_OFFLINE=1): OSError.
+            # ValueError, RuntimeError, MemoryError tidak pernah terobservasi jadi jangan ditangkap.
+            # Galat selain OSError dibiarkan lewat apa adanya.
+            raise RuntimeError(
+                f"Gagal memuat model embedding '{nama_model}': {err}. "
+                "Kemungkinan penyebab: nama model salah atau tidak ditemukan di Hugging Face, "
+                "model belum diunduh dan tidak ada koneksi internet, "
+                "berkas cache lokal rusak, atau memori RAM tidak mencukupi. "
+                "Solusi: pastikan koneksi internet aktif saat inisialisasi pertama atau bersihkan cache Hugging Face."
+            ) from err
+
+    def _encode(self, daftar_teks: list[str]) -> np.ndarray:
+        """Menghitung representasi vektor embedding untuk kumpulan teks masukan.
+
+        Input    : daftar_teks (list[str]) daftar kalimat yang akan diubah ke vektor
+        Output   : np.ndarray matriks embedding 2D berdimensi (jumlah_teks, dimensi)
+        Memanggil: self.model.encode()
+        Dipanggil: fit(), cari()
+        """
+        vektor = self.model.encode(daftar_teks, convert_to_numpy=True)
+        arr = np.asarray(vektor, dtype=np.float32)
+        # Menjamin bentuk keluaran selalu 2D (jumlah_baris, dimensi_fitur)
+        return arr.reshape(1, -1) if arr.ndim == 1 else arr
+
+    def fit(self, contoh: list[tuple[str, str]]) -> None:
+        """Melatih representasi embedding dengan menghitung vektor seluruh contoh kalimat.
+
+        Input    : contoh (list[tuple[str, str]]) daftar pasangan (intent_id, kalimat)
+        Output   : None
+        Memanggil: super().fit(), normalisasi() dengan stem=False, self._encode()
+        Dipanggil: belum ada (direncanakan dari chatbot.py pada Tahap 8, app.py pada Tahap 9, dan evaluate.py pada Tahap 10 sesuai PLAN-KODE.md)
+        """
+        super().fit(contoh)
+
+        # Keputusan di luar plan: Gunakan stem=False karena SentenceTransformer dilatih
+        # pada teks alami; pemotongan afiks Sastrawi berisiko merusak informasi semantik.
+        korpus = [normalisasi(kalimat, stem=False) for _, kalimat in contoh]
+
+        # Seluruh vektor embedding contoh dihitung SEKALI dalam satu panggilan batch
+        # agar komputasi tidak diulang pada setiap pertanyaan saat proses pencarian.
+        self._matriks_embedding = self._encode(korpus)
+        self.dimensi = self._matriks_embedding.shape[1]
+
+    def cari(self, teks: str, top_k: int = 3) -> list[tuple[str, float]]:
+        """Mencari intent paling relevan menggunakan cosine similarity vektor embedding.
+
+        Input    : teks (str) teks pertanyaan, top_k (int) kuota kandidat teratas
+        Output   : list[tuple[str, float]] pasangan (intent_id, skor) urut menurun
+        Memanggil: self._validasi_pencarian(), normalisasi() dengan stem=False, self._encode(), cosine_similarity(), self._agregasi_skor_intent()
+        Dipanggil: belum ada (direncanakan dari chatbot.py pada Tahap 8 dan evaluate.py pada Tahap 10 sesuai PLAN-KODE.md)
+        """
+        self._validasi_pencarian(teks, top_k)
+
+        # Lakukan prapemrosesan teks tanpa stemming (stem=False)
+        teks_bersih = normalisasi(teks, stem=False)
+
+        # Jika masukan kosong setelah dinormalisasi, kembalikan skor 0.0 secara deterministik
+        if not teks_bersih.strip():
+            return [(intent_id, 0.0) for intent_id in self._daftar_intent_unik[:top_k]]
+
+        # Encode teks pertanyaan menjadi satu vektor baris (1, dimensi)
+        vektor_query = self._encode([teks_bersih])
+
+        # Hitung kemiripan kosine antara vektor pertanyaan dengan seluruh vektor contoh.
+        # Arti rumus Cosine Similarity pada vektor embedding:
+        #   cos(theta) = (u . v) / (||u|| * ||v||)
+        # Pada vektor padat (dense), nilai berkisar [-1.0, 1.0]. Nilai 1.0 berarti arah
+        # makna semantik identik, 0.0 berarti tidak berkorelasi, dan -1.0 berarti berlawanan.
+        # Berbeda dari TF-IDF yang hanya mencocokkan irisan kata leksikal, embedding menangkap
+        # kesamaan makna parafrase walaupun tidak ada kata yang sama persis.
+        # Catatan: _agregasi_skor_intent menginisialisasi skor awal dengan 0.0, sehingga
+        # skor kosine negatif (arah berlawanan) secara implisit terpotong menjadi 0.0.
+        kemiripan = cosine_similarity(vektor_query, self._matriks_embedding).flatten()
+
+        daftar_skor = self._agregasi_skor_intent(kemiripan)
+        return daftar_skor[:top_k]
+
+
 if __name__ == "__main__":
-    print("=== Demonstrasi Modul Matcher TF-IDF GitBot ===")
-    contoh_data = [
-        ("setup_awal", "bagaimana cara setting nama dan email git"),
-        ("setup_awal", "konfigurasi awal git pengguna baru"),
-        ("bikin_pindah_branch", "cara membuat cabang atau branch baru"),
-        ("bikin_pindah_branch", "pindah ke branch lain dengan checkout"),
-        ("batalin_commit", "batalkan commit terakhir yang salah"),
-        ("batalin_commit", "cara undo commit dengan git reset"),
-    ]
+    import sys
+    import time
+    from src.config import MODEL_EMBEDDING, PATH_KB
+    from src.knowledge_base import daftar_contoh, muat_kb
 
-    matcher = TfidfMatcher()
-    matcher.fit(contoh_data)
+    print("=== Perbandingan Matcher TF-IDF vs Embedding (GitBot) ===")
 
-    pertanyaan_uji = [
-        "gimana setting config user git?",
-        "buat branch baru",
-        "batalin commit",
-    ]
+    # 1. Muat Knowledge Base asli proyek
+    print(f"\nMemuat data knowledge base dari: {PATH_KB}")
+    kb_data = muat_kb(PATH_KB)
+    contoh_kb = daftar_contoh(kb_data)
+    print(f"Total intent: {len(kb_data.get('intents', []))}, Total contoh kalimat: {len(contoh_kb)}")
 
+    # 2. Inisialisasi dan fitting TfidfMatcher
+    t0_tfidf_init = time.perf_counter()
+    matcher_tfidf = TfidfMatcher()
+    t_tfidf_init = time.perf_counter() - t0_tfidf_init
+
+    t0_tfidf_fit = time.perf_counter()
+    matcher_tfidf.fit(contoh_kb)
+    t_tfidf_fit = time.perf_counter() - t0_tfidf_fit
+
+    print(f"\n[TF-IDF] Waktu inisialisasi: {t_tfidf_init:.4f} detik | Waktu fit: {t_tfidf_fit:.4f} detik")
+
+    # 3. Inisialisasi dan fitting EmbeddingMatcher
+    t0_emb_init = time.perf_counter()
+    matcher_emb = EmbeddingMatcher(MODEL_EMBEDDING)
+    t_emb_init = time.perf_counter() - t0_emb_init
+
+    t0_emb_fit = time.perf_counter()
+    matcher_emb.fit(contoh_kb)
+    t_emb_fit = time.perf_counter() - t0_emb_fit
+
+    print(f"[Embedding] Waktu muat model: {t_emb_init:.4f} detik | Waktu fit: {t_emb_fit:.4f} detik (dimensi: {matcher_emb.dimensi})")
+
+    # 4. Tentukan daftar pertanyaan uji (dari CLI argumen atau pertanyaan bawaan netral)
+    if len(sys.argv) > 1:
+        pertanyaan_uji = sys.argv[1:]
+        print(f"\nMenggunakan {len(pertanyaan_uji)} pertanyaan dari argumen baris perintah.")
+    else:
+        pertanyaan_uji = [
+            "bagaimana cara memperbarui repositori lokal dari server?",
+            "saya ingin membatalkan perubahan file yang belum di-stage",
+            "tahap awal setting identitas programmer di git",
+        ]
+        print(f"\nMenggunakan 3 pertanyaan bawaan netral (bukan contoh KB).")
+
+    # 5. Jalankan evaluasi pencarian per pertanyaan dan bandingkan hasilnya
     for no, tanya in enumerate(pertanyaan_uji, start=1):
-        print(f"\nPertanyaan {no}: '{tanya}'")
-        hasil_cari = matcher.cari(tanya, top_k=3)
-        for rank, (intent, skor) in enumerate(hasil_cari, start=1):
-            print(f"  {rank}. Intent: {intent:<22} Skor: {skor:.4f}")
+        print(f"\n--------------------------------------------------")
+        print(f"Pertanyaan {no}: '{tanya}'")
+
+        # TF-IDF cari
+        t0_tfidf_cari = time.perf_counter()
+        hasil_tfidf = matcher_tfidf.cari(tanya, top_k=3)
+        t_tfidf_cari = time.perf_counter() - t0_tfidf_cari
+
+        print(f"  [TF-IDF] (waktu: {t_tfidf_cari * 1000:.2f} ms):")
+        for rank, (intent, skor) in enumerate(hasil_tfidf, start=1):
+            print(f"    {rank}. {intent:<25} Skor: {skor:.4f}")
+
+        # Embedding cari
+        t0_emb_cari = time.perf_counter()
+        hasil_emb = matcher_emb.cari(tanya, top_k=3)
+        t_emb_cari = time.perf_counter() - t0_emb_cari
+
+        print(f"  [Embedding] (waktu: {t_emb_cari * 1000:.2f} ms):")
+        for rank, (intent, skor) in enumerate(hasil_emb, start=1):
+            print(f"    {rank}. {intent:<25} Skor: {skor:.4f}")
