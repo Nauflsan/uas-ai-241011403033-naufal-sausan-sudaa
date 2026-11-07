@@ -2,16 +2,17 @@
 
 Modul ini menyediakan kelas pencocokan intent berbasis kemiripan kosine:
 BaseMatcher sebagai kelas dasar abstrak, TfidfMatcher sebagai implementasi
-baseline menggunakan representasi TF-IDF dan cosine similarity, serta
-EmbeddingMatcher berbasis representasi sentence embedding multibahasa.
-Metode pembanding IndoBertMatcher akan diimplementasikan pada Tahap 7.
+baseline menggunakan representasi TF-IDF dan cosine similarity,
+EmbeddingMatcher berbasis representasi sentence embedding multibahasa, serta
+IndoBertMatcher berbasis representasi model IndoBERT mentah dengan mean pooling.
 """
 
 from typing import Optional, Union
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, models
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from src.config import MODEL_INDOBERT
 from src.preprocessing import normalisasi
 
 # Cache objek model SentenceTransformer tingkat modul per nama_model
@@ -358,13 +359,72 @@ class EmbeddingMatcher(BaseMatcher):
         return daftar_skor[:top_k]
 
 
+class IndoBertMatcher(EmbeddingMatcher):
+    """Pencocok intent berbasis representasi model IndoBERT dan mean pooling.
+
+    Menggunakan model pretrained bahasa Indonesia indobenchmark/indobert-base-p1
+    sebagai pembanding kontekstual terhadap MiniLM tanpa proses fine-tuning.
+    Representasi kalimat dibentuk secara eksplisit dari Transformer dan Mean Pooling.
+
+    Input    : None
+    Output   : instansi IndoBertMatcher
+    Memanggil: super().__init__() dengan MODEL_INDOBERT
+    Dipanggil: modul matcher (__main__), belum ada (direncanakan dari app.py pada Tahap 9 dan evaluate.py pada Tahap 10 sesuai PLAN-KODE.md)
+    """
+
+    def __init__(self) -> None:
+        """Menginisialisasi matcher IndoBERT dengan model MODEL_INDOBERT.
+
+        Input    : None
+        Output   : None
+        Memanggil: super().__init__() dengan MODEL_INDOBERT
+        Dipanggil: modul matcher (__main__), belum ada (direncanakan dari app.py pada Tahap 9 dan evaluate.py pada Tahap 10 sesuai PLAN-KODE.md)
+        """
+        super().__init__(MODEL_INDOBERT)
+
+    def _muat_model(self, nama_model: str) -> SentenceTransformer:
+        """Memuat model IndoBERT mentah dengan mean pooling pada perangkat CPU.
+
+        Input    : nama_model (str) identifier model pretrained IndoBERT
+        Output   : instansi SentenceTransformer siap pakai
+        Memanggil: models.Transformer(), models.Pooling(), SentenceTransformer()
+        Dipanggil: super().__init__() -> EmbeddingMatcher.__init__()
+        """
+        if nama_model in _CACHE_MODEL_EMBEDDING:
+            return _CACHE_MODEL_EMBEDDING[nama_model]
+
+        try:
+            # Memuat transformer IndoBERT mentah (representasi kontekstual level token)
+            transformer = models.Transformer(nama_model)
+            dimensi_kata = transformer.get_word_embedding_dimension()
+
+            # Alasan Mean Pooling: IndoBERT mentah (indobenchmark/indobert-base-p1) adalah Masked LM
+            # tingkat token; representasi token [CLS] mentah tanpa fine-tuning mengalami keruntuhan
+            # representasi (anisotropik). Mean pooling merata-ratakan seluruh vektor token kontekstual
+            # non-padding menjadi representasi kalimat padat berdimensi tetap tanpa fine-tuning.
+            pooling = models.Pooling(dimensi_kata, pooling_mode="mean")
+
+            # Membangun pipeline SentenceTransformer penggabung transformer dan pooling pada CPU
+            model = SentenceTransformer(modules=[transformer, pooling], device="cpu")
+            _CACHE_MODEL_EMBEDDING[nama_model] = model
+            return model
+        except OSError as err:
+            raise RuntimeError(
+                f"Gagal memuat model IndoBERT '{nama_model}': {err}. "
+                "Kemungkinan penyebab: nama model salah atau tidak ditemukan di Hugging Face, "
+                "model belum diunduh dan tidak ada koneksi internet, "
+                "berkas cache lokal rusak, atau memori RAM tidak mencukupi. "
+                "Solusi: pastikan koneksi internet aktif saat inisialisasi pertama atau bersihkan cache Hugging Face."
+            ) from err
+
+
 if __name__ == "__main__":
     import sys
     import time
     from src.config import MODEL_EMBEDDING, PATH_KB
     from src.knowledge_base import daftar_contoh, muat_kb
 
-    print("=== Perbandingan Matcher TF-IDF vs Embedding (GitBot) ===")
+    print("=== Perbandingan Matcher TF-IDF vs Embedding vs IndoBERT (GitBot) ===")
 
     # 1. Muat Knowledge Base asli proyek
     print(f"\nMemuat data knowledge base dari: {PATH_KB}")
@@ -394,7 +454,25 @@ if __name__ == "__main__":
 
     print(f"[Embedding] Waktu muat model: {t_emb_init:.4f} detik | Waktu fit: {t_emb_fit:.4f} detik (dimensi: {matcher_emb.dimensi})")
 
-    # 4. Tentukan daftar pertanyaan uji (dari CLI argumen atau pertanyaan bawaan netral)
+    # 4. Inisialisasi dan fitting IndoBertMatcher
+    matcher_indobert = None
+    try:
+        t0_ib_init = time.perf_counter()
+        matcher_indobert = IndoBertMatcher()
+        t_ib_init = time.perf_counter() - t0_ib_init
+
+        t0_ib_fit = time.perf_counter()
+        matcher_indobert.fit(contoh_kb)
+        t_ib_fit = time.perf_counter() - t0_ib_fit
+
+        print(
+            f"[IndoBERT] Waktu muat model: {t_ib_init:.4f} detik | Waktu fit: {t_ib_fit:.4f} detik (dimensi: {matcher_indobert.dimensi})"
+        )
+    except RuntimeError as err:
+        matcher_indobert = None
+        print(f"[IndoBERT] tidak tersedia: {err}")
+
+    # 5. Tentukan daftar pertanyaan uji (dari CLI argumen atau pertanyaan bawaan netral)
     if len(sys.argv) > 1:
         pertanyaan_uji = sys.argv[1:]
         print(f"\nMenggunakan {len(pertanyaan_uji)} pertanyaan dari argumen baris perintah.")
@@ -406,7 +484,7 @@ if __name__ == "__main__":
         ]
         print(f"\nMenggunakan 3 pertanyaan bawaan netral (bukan contoh KB).")
 
-    # 5. Jalankan evaluasi pencarian per pertanyaan dan bandingkan hasilnya
+    # 6. Jalankan evaluasi pencarian per pertanyaan dan bandingkan hasilnya
     for no, tanya in enumerate(pertanyaan_uji, start=1):
         print(f"\n--------------------------------------------------")
         print(f"Pertanyaan {no}: '{tanya}'")
@@ -428,3 +506,13 @@ if __name__ == "__main__":
         print(f"  [Embedding] (waktu: {t_emb_cari * 1000:.2f} ms):")
         for rank, (intent, skor) in enumerate(hasil_emb, start=1):
             print(f"    {rank}. {intent:<25} Skor: {skor:.4f}")
+
+        # IndoBERT cari
+        if matcher_indobert is not None:
+            t0_ib_cari = time.perf_counter()
+            hasil_ib = matcher_indobert.cari(tanya, top_k=3)
+            t_ib_cari = time.perf_counter() - t0_ib_cari
+
+            print(f"  [IndoBERT] (waktu: {t_ib_cari * 1000:.2f} ms):")
+            for rank, (intent, skor) in enumerate(hasil_ib, start=1):
+                print(f"    {rank}. {intent:<25} Skor: {skor:.4f}")

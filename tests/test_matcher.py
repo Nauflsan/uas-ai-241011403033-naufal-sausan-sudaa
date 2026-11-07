@@ -1,14 +1,16 @@
 """Pengujian unit untuk modul matcher intent GitBot.
 
-Menguji BaseMatcher, TfidfMatcher, dan EmbeddingMatcher menggunakan kumpulan data kecil
+Menguji BaseMatcher, TfidfMatcher, EmbeddingMatcher, dan IndoBertMatcher menggunakan kumpulan data kecil
 di dalam tes tanpa membaca data/knowledge_base.json.
 """
 
+import os
 import pytest
-from src.config import MODEL_EMBEDDING
+from src.config import MODEL_EMBEDDING, MODEL_INDOBERT
 from src.matcher import (
     BaseMatcher,
     EmbeddingMatcher,
+    IndoBertMatcher,
     TfidfMatcher,
     _CACHE_MODEL_EMBEDDING,
 )
@@ -375,3 +377,139 @@ def test_embedding_cache_model_tingkat_modul():
     m1 = EmbeddingMatcher(MODEL_EMBEDDING)
     m2 = EmbeddingMatcher(MODEL_EMBEDDING)
     assert m1.model is m2.model
+
+
+# =====================================================================
+# Pengujian IndoBertMatcher (Tahap 7)
+# =====================================================================
+
+
+@pytest.fixture
+def reset_cache_embedding():
+    """Mengisolasi cache model embedding dengan mengosongkan dan memulihkannya setelah tes."""
+    salinan = dict(_CACHE_MODEL_EMBEDDING)
+    _CACHE_MODEL_EMBEDDING.clear()
+    try:
+        yield
+    finally:
+        _CACHE_MODEL_EMBEDDING.clear()
+        _CACHE_MODEL_EMBEDDING.update(salinan)
+
+
+def test_indobert_bangun_transformer_dan_pooling(monkeypatch, reset_cache_embedding):
+    """Memastikan IndoBertMatcher memakai MODEL_INDOBERT dan menyusun Transformer serta Pooling mode mean."""
+    panggilan = {}
+
+    class DummyTransformer:
+        def __init__(self, nama_model):
+            panggilan["transformer_model"] = nama_model
+
+        def get_word_embedding_dimension(self):
+            return 768
+
+    class DummyPooling:
+        def __init__(self, dimensi, pooling_mode="mean"):
+            panggilan["pooling_dim"] = dimensi
+            panggilan["pooling_mode"] = pooling_mode
+
+    class DummySentenceTransformer:
+        def __init__(self, modules=None, device="cpu"):
+            panggilan["modules"] = modules
+            panggilan["device"] = device
+
+        def get_embedding_dimension(self):
+            return 768
+
+    monkeypatch.setattr("src.matcher.models.Transformer", DummyTransformer)
+    monkeypatch.setattr("src.matcher.models.Pooling", DummyPooling)
+    monkeypatch.setattr("src.matcher.SentenceTransformer", DummySentenceTransformer)
+
+    matcher = IndoBertMatcher()
+
+    assert matcher.nama_model == MODEL_INDOBERT
+    assert panggilan["transformer_model"] == MODEL_INDOBERT
+    assert panggilan["pooling_dim"] == 768
+    assert panggilan["pooling_mode"] == "mean"
+    assert panggilan["device"] == "cpu"
+    assert len(panggilan["modules"]) == 2
+    assert isinstance(panggilan["modules"][0], DummyTransformer)
+    assert isinstance(panggilan["modules"][1], DummyPooling)
+
+
+def test_indobert_dua_instance_berbagi_objek_cache(monkeypatch, reset_cache_embedding):
+    """Memastikan dua instansi IndoBertMatcher berbagi objek model yang sama dari cache modul."""
+    jumlah_inisialisasi = {"transformer": 0}
+
+    class DummyTransformer:
+        def __init__(self, nama_model):
+            jumlah_inisialisasi["transformer"] += 1
+
+        def get_word_embedding_dimension(self):
+            return 768
+
+    class DummyPooling:
+        def __init__(self, dimensi, pooling_mode="mean"):
+            pass
+
+    class DummySentenceTransformer:
+        def __init__(self, modules=None, device="cpu"):
+            pass
+
+        def get_embedding_dimension(self):
+            return 768
+
+    monkeypatch.setattr("src.matcher.models.Transformer", DummyTransformer)
+    monkeypatch.setattr("src.matcher.models.Pooling", DummyPooling)
+    monkeypatch.setattr("src.matcher.SentenceTransformer", DummySentenceTransformer)
+
+    m1 = IndoBertMatcher()
+    m2 = IndoBertMatcher()
+
+    assert m1.model is m2.model
+    assert jumlah_inisialisasi["transformer"] == 1
+    assert _CACHE_MODEL_EMBEDDING[MODEL_INDOBERT] is m1.model
+
+
+def test_indobert_oserror_dibungkus_runtime_error(monkeypatch, reset_cache_embedding):
+    """Memastikan kegagalan OSError saat memuat model IndoBERT dibungkus ke RuntimeError dan tidak masuk cache."""
+    def mock_transformer_gagal(*args, **kwargs):
+        raise OSError("Koneksi gagal atau model tidak ditemukan di Hugging Face.")
+
+    monkeypatch.setattr("src.matcher.models.Transformer", mock_transformer_gagal)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        IndoBertMatcher()
+
+    pesan = str(exc_info.value)
+    assert "IndoBERT" in pesan
+    assert MODEL_INDOBERT in pesan
+    assert "Kemungkinan penyebab" in pesan
+    assert "Solusi" in pesan
+    assert MODEL_INDOBERT not in _CACHE_MODEL_EMBEDDING
+
+
+def test_indobert_issubclass_embedding_matcher():
+    """Memastikan IndoBertMatcher adalah subclass dari EmbeddingMatcher dan BaseMatcher."""
+    assert issubclass(IndoBertMatcher, EmbeddingMatcher)
+    assert issubclass(IndoBertMatcher, BaseMatcher)
+
+
+@pytest.mark.skipif(
+    os.getenv("GITBOT_INDOBERT_ASLI") != "1",
+    reason="Pengujian model IndoBERT asli dilewati (hanya berjalan jika GITBOT_INDOBERT_ASLI=1)",
+)
+def test_indobert_integrasi_model_asli(reset_cache_embedding):
+    """Pengujian integrasi model IndoBERT asli jika GITBOT_INDOBERT_ASLI bernilai 1."""
+    contoh_data = [
+        ("setup_awal", "cara mengatur nama dan email di git"),
+        ("bikin_pindah_branch", "cara membuat cabang baru"),
+    ]
+    matcher = IndoBertMatcher()
+    matcher.fit(contoh_data)
+    hasil = matcher.cari("konfigurasi identitas git", top_k=2)
+
+    # Verifikasi bentuk dan tipe data hasil tanpa menuntut peringkat akurat
+    assert len(hasil) == 2
+    assert matcher.dimensi == 768
+    assert all(isinstance(skor, float) for _, skor in hasil)
+    assert hasil[0][1] >= hasil[1][1]
