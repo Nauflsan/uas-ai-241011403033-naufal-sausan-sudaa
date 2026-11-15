@@ -14,6 +14,7 @@ import streamlit as st
 from src.chatbot import GitBot, _buat_matcher
 from src.config import PATH_KB, THRESHOLD
 from src.knowledge_base import KBError, daftar_contoh, muat_kb
+from src.style import inject_css
 
 # Pemetaan label ramah pengguna pada selectbox ke kode metode pencocok internal
 PETA_METODE: dict[str, str] = {
@@ -266,6 +267,7 @@ def main() -> None:
     Dipanggil: dieksekusi saat skrip app.py dijalankan oleh Streamlit
     """
     st.set_page_config(page_title="GitBot - Asisten Git & GitHub", page_icon="🤖")
+    inject_css()
 
     if "riwayat" not in st.session_state:
         st.session_state["riwayat"] = []
