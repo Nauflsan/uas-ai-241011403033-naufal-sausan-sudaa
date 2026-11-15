@@ -9,7 +9,9 @@ html, body, .stApp, [data-testid="stSidebar"] {
 }
 
 /* bersihin chrome bawaan Streamlit */
-[data-testid="stToolbar"],
+[data-testid="stToolbarActions"],
+[data-testid="stAppDeployButton"],
+[data-testid="stMainMenu"],
 [data-testid="stDecoration"],
 #MainMenu,
 footer {
@@ -17,6 +19,14 @@ footer {
 }
 header[data-testid="stHeader"] {
     background: transparent;
+}
+
+/* pastiin tombol buka/tutup sidebar selalu keliatan */
+[data-testid="stExpandSidebarButton"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
 }
 
 /* area konten lebih sempit biar enak dibaca */
