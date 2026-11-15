@@ -244,7 +244,7 @@ def _buat_matcher(metode: str) -> BaseMatcher:
     Input    : metode (str) pengenal metode pencocokan ('tfidf', 'embedding', 'indobert')
     Output   : instansi BaseMatcher siap di-fit
     Memanggil: TfidfMatcher(), EmbeddingMatcher(), IndoBertMatcher()
-    Dipanggil: main()
+    Dipanggil: main(), app.py
     """
     nama = metode.lower().strip()
     if nama == "tfidf":
